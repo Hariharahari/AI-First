@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --icici-orange: #FF6600;
+    --icici-gray: #f5f5f5;
+    --icici-dark-gray: #333333;
+    --icici-light-gray: #e0e0e0;
+    --icici-hover-orange: #e65c00;
+  }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-lg shadow-sm;
+  }
+
+  .btn-primary {
+    @apply bg-[var(--icici-orange)] text-white hover:bg-[var(--icici-hover-orange)];
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  }
+
+  .nav-item {
+    @apply px-3 py-2 rounded-md transition-colors;
+  }
+
+  .nav-item:hover {
+    @apply bg-[var(--icici-orange)] text-white;
+  }
+
+  .active-nav-item {
+    @apply bg-[var(--icici-orange)] text-white;
+  }
+}

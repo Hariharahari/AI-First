@@ -1,0 +1,3 @@
+- **Issue**: Incomplete component structure
+- **Fix**: Completed component with proper HeroUI conversion
+- **Rule**: Components must be complete and use HeroUI

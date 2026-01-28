@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --global-finance-blue: #1E40AF;
+    --global-finance-gray: #f5f5f5;
+    --global-finance-dark-gray: #333333;
+    --global-finance-light-gray: #e0e0e0;
+    --global-finance-hover-blue: #1D4ED8;
+  }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-lg shadow-sm;
+  }
+
+  .btn-primary {
+    @apply bg-[var(--global-finance-blue)] text-white hover:bg-[var(--global-finance-hover-blue)];
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  }
+
+  .nav-item {
+    @apply px-3 py-2 rounded-md transition-colors;
+  }
+
+  .nav-item:hover {
+    @apply bg-[var(--global-finance-blue)] text-white;
+  }
+
+  .active-nav-item {
+    @apply bg-[var(--global-finance-blue)] text-white;
+  }
+}

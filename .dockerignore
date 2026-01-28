@@ -1,0 +1,6 @@
+# Ignore heavy or sensitive files
+generated-app/node_modules
+generated-app/dist
+.git
+__pycache__
+.streamlit/secrets.toml

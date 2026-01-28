@@ -1,0 +1,3 @@
+- **Issue**: Using raw HTML elements instead of HeroUI
+- **Fix**: Converted to use HeroUI components (Box, Text)
+- **Rule**: Must use HeroUI components consistently

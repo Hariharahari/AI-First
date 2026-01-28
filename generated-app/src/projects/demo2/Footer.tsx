@@ -1,0 +1,3 @@
+- **Issue**: Named export instead of default
+- **Fix**: Changed to `export default function Footer()`
+- **Rule**: All components must use default exports
