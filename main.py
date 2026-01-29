@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import os
 import re
 import time
@@ -8,7 +9,8 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 # --- CONFIGURATION ---
-API_KEY = st.secrets["NVIDIA_API_KEY"]
+# Try to get key from Docker Env, otherwise load from secrets.toml (Hybrid approach for Cloud/Docker)
+API_KEY = os.getenv("NVIDIA_API_KEY") or st.secrets["NVIDIA_API_KEY"]
 BASE_URL = "https://integrate.api.nvidia.com/v1"
 MODEL_ID = "mistralai/devstral-2-123b-instruct-2512"
 
@@ -67,6 +69,202 @@ def get_llm():
 
 llm = get_llm()
 
+# --- LIVE PREVIEW (STACKBLITZ) ---
+# --- LIVE PREVIEW (STACKBLITZ) ---
+def render_live_preview(project_name, file_contents):
+    """
+    🚀 Generates a button to open the project in StackBlitz (New Tab).
+    """
+    # 1. Boilerplate for Vite + React + Tailwind + HeroUI
+    boilerplate = {
+        "index.html": """<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>""",
+        "package.json": """{
+  "name": "ai-preview",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.0",
+    "@heroui/react": "^2.2.0",
+    "framer-motion": "^10.16.4",
+    "lucide-react": "^0.300.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0",
+    "zustand": "^4.5.0",
+    "date-fns": "^3.3.1",
+    "recharts": "^2.10.3",
+    "react-hook-form": "^7.49.3",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0"
+  }
+}""",
+        "tailwind.config.js": """import { heroui } from "@heroui/react";
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}"
+  ],
+  theme: {
+    extend: {},
+  },
+  darkMode: "class",
+  plugins: [heroui()]
+}""",
+        "postcss.config.js": """export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}""",
+        "tsconfig.json": """{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}""",
+        "tsconfig.node.json": """{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["vite.config.ts"]
+}""",
+        "vite.config.ts": """import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})""",
+        "src/main.tsx": """import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
+import {NextUIProvider} from "@heroui/react";
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <NextUIProvider>
+      <div className="w-screen h-screen bg-background text-foreground dark">
+        <App />
+      </div>
+    </NextUIProvider>
+  </React.StrictMode>,
+)""",
+        "src/index.css": """@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}"""
+    }
+
+    # 2. Merge User Code into Boilerplate
+    files = {**boilerplate, **file_contents}
+    
+    # 3. Construct HTML Form with a Manual Submit Button
+    form_fields = ""
+    for path, content in files.items():
+        # Escape quotes for HTML
+        safe_content = content.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
+        form_fields += f'<input type="hidden" name="project[files][{path}]" value="{safe_content}">'
+
+    html = f"""
+    <html>
+    <head>
+        <style>
+            body {{
+                background-color: #0e1117;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100px;
+                margin: 0;
+            }}
+            .launch-btn {{
+                background-color: #FF4B4B;
+                color: white;
+                font-family: sans-serif;
+                font-size: 16px;
+                font-weight: 600;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: background-color 0.2s;
+                text-decoration: none;
+                display: inline-block;
+            }}
+            .launch-btn:hover {{
+                background-color: #FF2B2B;
+            }}
+        </style>
+    </head>
+    <body>
+        <form action="https://stackblitz.com/run?file=src/App.tsx" method="post" target="_blank">
+            <input type="hidden" name="project[title]" value="{project_name}">
+            <input type="hidden" name="project[template]" value="node">
+            <input type="hidden" name="project[description]" value="AI Generated Project">
+            {form_fields}
+            <button type="submit" class="launch-btn">
+                🚀 Open "{project_name}" in New Tab
+            </button>
+        </form>
+    </body>
+    </html>
+    """
+    
+    return components.html(html, height=150)
+
 # --- GUARDRAILS (WEEK 9 SAFETY LAYER) ---
 def input_guardrail(prompt):
     """
@@ -78,10 +276,8 @@ def input_guardrail(prompt):
         return False, "🚫 **Security Block:** I cannot discuss that topic."
 
     # 2. Topic Check: Must be relevant to the Agent's purpose (Web Dev)
-    # We allow short prompts like "fix it" or "make it blue", but long prompts MUST mention coding terms.
     coding_keywords = ["react", "code", "app", "website", "ui", "component", "button", "page", "fix", "debug", "create", "build", "style", "css", "api", "nav", "sidebar", "footer", "login", "dashboard", "typescript", "npm"]
     
-    # If prompt is long (> 5 words) and has NO coding keywords, flag it as off-topic.
     if len(prompt.split()) > 5 and not any(kw in prompt.lower() for kw in coding_keywords):
         return False, "⚠️ **Off-Topic:** I am a React Architect. Please ask about web development, UI, or coding."
 
@@ -160,48 +356,31 @@ export default function App() {{ return (<div className="App"><ProjectApp /></di
 
 # --- ADVANCED QA LAYER ---
 def clean_chatter_from_code(code):
-    """
-    Removes 'Summary of changes', 'Rule Broken', and other conversational text 
-    that might be appended to the file.
-    """
     fixes = []
-    
-    # 1. Remove "Rule Broken" or "Summary:" lines at the end
-    # Regex looks for: Newline + (Summary|Rule|Note|Changes): + anything until end
     chatter_pattern = r'\n\s*(?:\*\*|)(?:Summary|Rule Broken|Key Changes|Note|Update):.*$'
     if re.search(chatter_pattern, code, re.DOTALL | re.IGNORECASE):
         code = re.sub(chatter_pattern, '', code, flags=re.DOTALL | re.IGNORECASE)
         fixes.append("🧹 Cleaned conversational chatter from file footer")
 
-    # 2. Safety Net: If TypeScript file, ensure it ends with } or ;
-    # If the last character is a letter, it's likely garbage text.
     stripped = code.strip()
     if len(stripped) > 50 and stripped[-1].isalpha():
-        # Find the last occurrence of '}' or ';' and cut everything after it
         last_brace = stripped.rfind('}')
         last_semi = stripped.rfind(';')
         cut_point = max(last_brace, last_semi)
-        
-        if cut_point > len(stripped) - 100: # Only cut if it's near the end
+        if cut_point > len(stripped) - 100: 
             code = stripped[:cut_point+1]
             fixes.append("✂️ Removed trailing garbage text after code end")
-
     return code, fixes
 
 def validate_and_fix_code(filename, code, strict_mode=True):
     fixes_made = []
-    
-    # STEP 1: SCRUBBER (Remove Chat Text)
     code, scrub_fixes = clean_chatter_from_code(code)
     fixes_made.extend(scrub_fixes)
 
-    # STEP 2: INSTANT FIXES (Regex)
-    # HeroUI Updates
     if "CardContent" in code:
         code = code.replace("CardContent", "CardBody")
         fixes_made.append("⚡ Fixed: CardContent -> CardBody")
         
-    # Lucide Updates
     if "City" in code and "lucide-react" in code:
         code = code.replace("City", "Building2")
         fixes_made.append("⚡ Fixed: City Icon -> Building2")
@@ -209,7 +388,6 @@ def validate_and_fix_code(filename, code, strict_mode=True):
     if "import { City }" in code: code = code.replace("import { City }", "import { Building2 }")
     if ", City," in code: code = code.replace(", City,", ", Building2,")
 
-    # HeroIcons cleanup
     if "Typography" in code and "@heroicons/react" in code:
         code = code.replace("<Typography", "<div").replace("</Typography>", "</div>")
         code = re.sub(r'variant="[^"]*"', "", code)
@@ -217,7 +395,6 @@ def validate_and_fix_code(filename, code, strict_mode=True):
     
     if not strict_mode: return code, fixes_made
 
-    # STEP 3: DEEP SCAN (LLM) if necessary
     needs_deep_scan = False
     if "export default" not in code and ".tsx" in filename: needs_deep_scan = True
     if "CardTitle" in code or "CardDescription" in code: needs_deep_scan = True
@@ -251,22 +428,13 @@ def validate_and_fix_code(filename, code, strict_mode=True):
 
 def parse_and_save_files(response_text, target_dir):
     logs = []
-    
-    # --- STRICT REGEX PARSING ---
-    # Finds ===FILE: name=== then scans for the code block.
-    # It stops EXACTLY at the closing ``` tag.
-    # This prevents capturing text after the code block.
     pattern = r'===FILE:\s*(.*?)\s*===\s*.*?(```(?:typescript|ts|tsx|javascript|js|jsx|css|json)?\n(.*?)```)'
-    
     matches = re.findall(pattern, response_text, re.DOTALL)
-    
     parsed_files = []
     
     if matches:
         for fname, full_block, code_content in matches:
             parsed_files.append((fname.strip(), code_content.strip()))
-            
-    # Fallback for active file editing (if no file header used)
     elif st.session_state.active_file:
          code_match = re.search(r'```(?:typescript|ts|tsx|javascript|js|jsx)?\n(.*?)```', response_text, re.DOTALL)
          if code_match:
@@ -287,7 +455,6 @@ def parse_and_save_files(response_text, target_dir):
             clean_filename = clean_filename.split(f"{project_name}/")[-1] 
         clean_filename = re.sub(r'^(src/|projects/|generated-app/|app/)', '', clean_filename, flags=re.IGNORECASE).lstrip("/")
         
-        # --- RUN ADVANCED QA ---
         final_code, fixes = validate_and_fix_code(clean_filename, code)
         
         if fixes:
@@ -332,7 +499,7 @@ def run_qa_agent(project_name):
     success, logs = parse_and_save_files(resp_content, target_dir)
     return success, logs
 
-# --- SIDEBAR CONTROL CENTER ---
+
 with st.sidebar:
     st.header("🎛️ Control Center")
     
@@ -363,7 +530,6 @@ with st.sidebar:
         p_reqs = st.text_area("Requirements", height=100)
         
         if st.button("🚀 Build", type="primary"):
-            # 🛑 GUARDRAIL CHECK 1 (Initial Build)
             is_safe, denial_msg = input_guardrail(p_reqs)
             
             if not is_safe:
@@ -417,7 +583,7 @@ with st.sidebar:
 # --- MAIN WORKSPACE ---
 if st.session_state.current_project:
     st.title(f"🚀 {st.session_state.current_project}")
-    tab_chat, tab_code, tab_brain = st.tabs(["💬 Architect Chat", "📝 Code Viewer", "🧠 AI Brain"])
+    tab_chat, tab_preview, tab_code, tab_brain = st.tabs(["💬 Architect Chat", "⚡ Live Preview", "📝 Code Viewer", "🧠 AI Brain"])
 
     with tab_chat:
         for msg in st.session_state.history:
@@ -432,7 +598,6 @@ if st.session_state.current_project:
                             st.markdown(msg.content)
 
         if feedback := st.chat_input("Instruction..."):
-            # 🛑 GUARDRAIL CHECK 2 (Chat Interface)
             is_safe, denial_msg = input_guardrail(feedback)
             
             with st.chat_message("user", avatar="🧑‍💻"): st.write(feedback)
@@ -480,6 +645,22 @@ if st.session_state.current_project:
                             status.update(label="Done", state="complete")
                             time.sleep(1)
                             st.rerun()
+
+    with tab_preview:
+        st.subheader("⚡ Live React Preview")
+        st.caption("This runs your code in a browser-based container (StackBlitz). No local server needed.")
+        
+        if st.button("▶️ Launch Preview"):
+            project_files = {}
+            p_files = get_project_files(st.session_state.current_project)
+            
+            for f in p_files:
+                content = read_file_content(st.session_state.current_project, f)
+                # Map files to 'src/' if they are in the project root to match boilerplate
+                clean_path = f if f.startswith("src/") else f"src/{f}"
+                project_files[clean_path] = content
+            
+            render_live_preview(st.session_state.current_project, project_files)
 
     with tab_code:
         if st.session_state.active_file:
