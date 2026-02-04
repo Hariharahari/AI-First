@@ -1,0 +1,83 @@
+# ==================================
+# 🔒 SECURITY (CRITICAL)
+# ==================================
+# Never upload API keys or secrets to GitHub
+.env
+.env.*
+secrets.toml
+.streamlit/secrets.toml
+config/secrets.toml
+*.pem
+*.key
+
+# ==================================
+# 🐍 Python & Virtual Environments
+# ==================================
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment Folders
+venv/
+.venv/
+env/
+.env_root/
+ENV/
+
+# ==================================
+# 🛠 Tools & IDEs
+# ==================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# ==================================
+# 🧪 Testing & Logs
+# ==================================
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+*.log
+
+# ==================================
+# 🗄 Databases & Large Files
+# ==================================
+*.sqlite
+*.db
+local_db/
+
+# Ignore large model files (download them at runtime instead)
+*.bin
+*.pth
+*.pt
+*.onnx
+*.gguf
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# ==================================
+# 🐳 Docker
+# ==================================
+# We usually WANT the Dockerfile, but ignore local override configs
+docker-compose.override.yml

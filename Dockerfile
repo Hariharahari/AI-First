@@ -18,4 +18,4 @@ EXPOSE 8501
 
 # 6. Start Command
 # We bind to 0.0.0.0 so the browser on your laptop can see the container
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "main.py", "--server.port=8501", "--server.address=0.0.0.0"]
